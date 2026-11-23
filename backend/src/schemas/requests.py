@@ -53,3 +53,35 @@ class ScheduleInput(BaseModel):
         if value is not None and value.utcoffset() is None:
             raise ValueError('首次分发时间必须包含时区')
         return value
+
+
+class BillInput(BaseModel):
+    run_id: int = Field(gt=0)
+    title: str = Field(default='', max_length=120)
+
+
+class LateReadingInput(BaseModel):
+    meter_code: str = Field(min_length=1, max_length=60)
+    reading_date: str = Field(min_length=8, max_length=10)
+    reading_minute: int = Field(ge=0, le=1439)
+    reading_m3: float = Field(ge=0, le=1_000_000_000)
+    note: str = Field(default='', max_length=200)
+
+    @field_validator('meter_code')
+    @classmethod
+    def meaningful_meter(cls, value):
+        if not value.strip():
+            raise ValueError('须填写独立表计编号')
+        return value.strip()
+
+
+class SettleInput(BaseModel):
+    idempotency_key: str = Field(min_length=8, max_length=120)
+    force_failure: bool = False
+
+    @field_validator('idempotency_key')
+    @classmethod
+    def meaningful_key(cls, value):
+        if not value.strip():
+            raise ValueError('请填写结账幂等键')
+        return value.strip()

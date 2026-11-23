@@ -29,3 +29,25 @@ def delivery_view(delivery, schedule):
     return {'id': delivery.id, 'schedule_id': schedule.id, 'recipient': schedule.recipient,
             'run_id': schedule.run_id, 'at': timestamp(delivery.delivered_at),
             'scheduled_at': timestamp(delivery.scheduled_at)}
+
+
+def late_reading_view(item):
+    return {'id': item.id, 'meter_code': item.meter_code, 'pool_zone': item.pool_zone,
+            'reading_date': item.reading_date, 'reading_minute': item.reading_minute,
+            'reading_m3': item.reading_liters / 1000, 'note': item.note,
+            'adjustment_id': item.adjustment_id, 'created_at': timestamp(item.created_at)}
+
+
+def bill_list_view(row):
+    return row
+
+
+def bill_detail_view(detail):
+    data = dict(detail)
+    data['created_at'] = timestamp(detail['created_at'])
+    for adjustment in data['adjustments']:
+        adjustment['submitted_at'] = timestamp(adjustment['submitted_at'])
+        adjustment['settled_at'] = timestamp(adjustment['settled_at'])
+    for attempt in data['settlement_attempts']:
+        attempt['at'] = timestamp(attempt['at'])
+    return data

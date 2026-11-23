@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.constants.enums import RunStatus
+from src.constants.enums import AdjustmentStatus, RunStatus
 from src.models.base import Base, utc_now
 
 
@@ -68,3 +68,64 @@ class AuditEvent(Base):
     action: Mapped[str] = mapped_column(String(60))
     detail: Mapped[str] = mapped_column(String(200))
     at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class Bill(Base):
+    """An immutable original hot-water bill, frozen with its own tariff rates."""
+    __tablename__ = 'bills'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(120))
+    run_id: Mapped[int | None] = mapped_column(ForeignKey('analysis_runs.id'), nullable=True)
+    owner: Mapped[str] = mapped_column(String(60))
+    rates: Mapped[dict] = mapped_column(JSON)
+    original_rows: Mapped[list] = mapped_column(JSON)
+    original_view: Mapped[dict] = mapped_column(JSON)
+    latest_view: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class LateReading(Base):
+    """A meter bottom that arrived after the bill period was already settled."""
+    __tablename__ = 'late_readings'
+    __table_args__ = (UniqueConstraint('bill_id', 'meter_code', 'point'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    bill_id: Mapped[int] = mapped_column(ForeignKey('bills.id'), index=True)
+    meter_code: Mapped[str] = mapped_column(String(60))
+    pool_zone: Mapped[str] = mapped_column(String(30))
+    reading_date: Mapped[str] = mapped_column(String(10))
+    reading_minute: Mapped[int] = mapped_column(Integer)
+    point: Mapped[int] = mapped_column(Integer)
+    reading_liters: Mapped[int] = mapped_column(Integer)
+    source_key: Mapped[str] = mapped_column(String(96))
+    note: Mapped[str] = mapped_column(String(200), default='')
+    adjustment_id: Mapped[int | None] = mapped_column(ForeignKey('adjustments.id'), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class Adjustment(Base):
+    """A make-up batch. Pending rows are live; submitted rows freeze the amount."""
+    __tablename__ = 'adjustments'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    bill_id: Mapped[int] = mapped_column(ForeignKey('bills.id'), index=True)
+    seq: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(16), default=AdjustmentStatus.PENDING, index=True)
+    delta: Mapped[dict] = mapped_column(JSON)
+    amount_cents: Mapped[int] = mapped_column(Integer)
+    submitted_by: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    settled_by: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    settled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
+
+
+class SettlementAttempt(Base):
+    """Idempotency log: a retried checkout never posts the make-up twice."""
+    __tablename__ = 'settlement_attempts'
+    __table_args__ = (UniqueConstraint('idempotency_key'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    adjustment_id: Mapped[int] = mapped_column(ForeignKey('adjustments.id'), index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(120))
+    outcome: Mapped[str] = mapped_column(String(16))
+    detail: Mapped[str] = mapped_column(String(200), default='')
+    actor: Mapped[str] = mapped_column(String(60))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)

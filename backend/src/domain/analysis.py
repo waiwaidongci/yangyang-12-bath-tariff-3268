@@ -74,6 +74,25 @@ def _band_minutes_until(timestamp, segments):
     return days * minutes_per_day + sum(max(0, min(minute, end) - start) for start, end in segments)
 
 
+def band_minutes_between(start, end, segments):
+    """Minutes of a half-open ordinal-minute interval falling inside tariff segments."""
+    if end <= start:
+        return 0
+    return _band_minutes_until(end, segments) - _band_minutes_until(start, segments)
+
+
+def parse_rows(rows):
+    """Validate raw rows and group them into ordered meter intervals."""
+    meters = defaultdict(list)
+    zones_by_meter = {}
+    for row in rows:
+        code, zone, start, end, start_liters, end_liters = _parse(row)
+        if zones_by_meter.setdefault(code, zone) != zone:
+            raise ValueError(f"表计 {code} 对应了多个池区，请核对独立表计归属。")
+        meters[code].append((start, end, start_liters, end_liters))
+    return meters, zones_by_meter
+
+
 def _allocate(meters, zones_by_meter):
     exact_volumes = defaultdict(Fraction)
     source_liters = 0
@@ -121,13 +140,7 @@ def analyze(rows: list[dict], parameters: dict) -> dict:
         key: _scaled(parameters.get(f"{key}_rate", default), f"{label}费率", 0, 1000, 100)
         for key, label, _, default in BANDS
     }
-    meters = defaultdict(list)
-    zones_by_meter = {}
-    for row in rows:
-        code, zone, *interval = _parse(row)
-        if zones_by_meter.setdefault(code, zone) != zone:
-            raise ValueError(f"表计 {code} 对应了多个池区，请核对独立表计归属。")
-        meters[code].append(interval)
+    meters, zones_by_meter = parse_rows(rows)
 
     volumes, source_liters, gaps = _allocate(meters, zones_by_meter)
     zones = [zone for zone in ZONES if zone in zones_by_meter.values()]

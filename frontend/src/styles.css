@@ -77,6 +77,9 @@ form .primary { margin-top:3px; }
 .status { display:inline-flex; align-items:center; padding:3px 7px; color:var(--quiet); font-size:.81rem; background:var(--wash); white-space:nowrap; border:1px solid var(--line); }
 .status-approved { color:oklch(.34 .092 150); background:oklch(.92 .045 153); }
 .status-failed,.status-returned { color:oklch(.38 .13 28); background:oklch(.91 .035 28); }
+.status-pending { color:oklch(.36 .09 70); background:oklch(.93 .06 80); }
+.status-submitted { color:oklch(.32 .08 245); background:oklch(.92 .04 248); }
+.status-settled,.status-success { color:oklch(.34 .092 150); background:oklch(.92 .045 153); }
 .conclusion { padding:clamp(17px,2.5vw,29px); border-top:4px solid var(--accent); background:var(--surface); }
 .conclusion h2 { font-size:clamp(1.32rem, 2.15vw, 2rem); }
 .conclusion > p { margin-bottom:.6rem; }

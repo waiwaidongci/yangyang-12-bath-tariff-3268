@@ -1,7 +1,7 @@
 import { esc } from '../../utils/html.js';
 import { roleName } from '../../constants/enums.js';
 
-const navigation = [ ['observations','数据台账'], ['analysis','分析任务'], ['result','结果与复核'], ['reports','报表分发'] ];
+const navigation = [ ['observations','数据台账'], ['analysis','分析任务'], ['result','结果与复核'], ['billing','费用补差'], ['reports','报表分发'] ];
 
 export function frame(spec, user, route, content) {
   const active = route.page;

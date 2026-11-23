@@ -16,3 +16,14 @@ class RunStatus(StrEnum):
 class Decision(StrEnum):
     APPROVED = 'approved'
     RETURNED = 'returned'
+
+
+class AdjustmentStatus(StrEnum):
+    PENDING = 'pending'
+    SUBMITTED = 'submitted'
+    SETTLED = 'settled'
+
+
+class SettlementOutcome(StrEnum):
+    SUCCESS = 'success'
+    FAILED = 'failed'
