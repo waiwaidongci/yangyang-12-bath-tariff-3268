@@ -1,0 +1,11 @@
+:root {
+  --ink: oklch(.235 .048 47);
+  --paper: oklch(.954 .022 47);
+  --light: oklch(.987 .009 47);
+  --accent: oklch(.405 .116 31);
+  --wash: oklch(.918 .034 31);
+  --sheet-pattern: repeating-linear-gradient(90deg, transparent 0 16px, oklch(1 0 0 / .085) 16px 17px);
+  --sheet-size: 20px 20px;
+  --radius: 6px;
+  --login-ratio: 1.50fr 1fr;
+}

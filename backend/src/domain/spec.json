@@ -1,0 +1,24 @@
+{
+  "organization": "岫泉浴场·热水用量分时成本透视",
+  "tagline": "分开核对独立表计，把峰段补水费用落到各池区",
+  "source": "岫泉浴场后勤值班组的热水补水表底与内部分摊费率（模拟数据）",
+  "record_name": "热水抄表区间",
+  "algorithm": "循环费率窗口的区间切分与池区成本透视",
+  "formula": "分时用量 =（截止表底 − 起始表底）× 时段交集分钟 ÷ 区间总分钟；分时费用 = 分时用量 × 时段费率。每天谷段为 22:00 至次日 06:00，平段为 06:00 至 17:00，峰段为 17:00 至 22:00。按池区与时段汇总后，将显示尾差按余数分配，使透视表可勾稽。",
+  "decision_prompt": "各池区的用量和费用能否勾稽，哪个池区应优先复核峰段补水排班？",
+  "fields": [
+    {"key": "pool_zone", "label": "池区", "type": "choice", "choices": ["岩露池区", "松雾池区", "溪畔池区"], "example": "岩露池区"},
+    {"key": "meter_code", "label": "独立表计编号", "type": "text", "example": "XQ-R01", "help": "只填池区独立供水表；同一编号对应一个池区。"},
+    {"key": "start_date", "label": "起始日期", "type": "date", "example": "2026-09-13"},
+    {"key": "start_minute", "label": "起始日内分钟（自 00:00 起）", "type": "integer", "min": 0, "max": 1439, "example": 0, "help": "05:30 填 330，午夜填 0。"},
+    {"key": "end_date", "label": "截止日期", "type": "date", "example": "2026-09-13", "help": "跨午夜时填写实际截止日期。"},
+    {"key": "end_minute", "label": "截止日内分钟（自 00:00 起）", "type": "integer", "min": 0, "max": 1439, "example": 330},
+    {"key": "reading_start_m3", "label": "起始表底（m³）", "type": "number", "min": 0, "max": 1000000000, "example": 1541.82, "help": "填写累计表底，精确到 0.001 m³。"},
+    {"key": "reading_end_m3", "label": "截止表底（m³）", "type": "number", "min": 0, "max": 1000000000, "example": 1545.22, "help": "同表相邻区间的截止和下一笔起始表底应一致。"}
+  ],
+  "parameters": [
+    {"key": "valley_rate", "label": "谷段费率（22:00–次日 06:00，元/m³）", "type": "number", "min": 0, "max": 1000, "default": 4.2, "help": "内部热水分摊单价，精确到分。"},
+    {"key": "flat_rate", "label": "平段费率（06:00–17:00，元/m³）", "type": "number", "min": 0, "max": 1000, "default": 6.8},
+    {"key": "peak_rate", "label": "峰段费率（17:00–22:00，元/m³）", "type": "number", "min": 0, "max": 1000, "default": 10.6}
+  ]
+}
